@@ -1,6 +1,6 @@
 # Empire Maps
 
-![Medieval Map](https://img.shields.io/badge/Medieval-Empire%20Maps-brown?style=for-the-badge)
+[![CodeQL](https://github.com/ngmisl/empiremap/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/ngmisl/empiremap/actions/workflows/github-code-scanning/codeql)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
 ## Overview
