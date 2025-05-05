@@ -1,0 +1,110 @@
+Product Requirements Document: Generative Medieval Empire Map
+
+1. Introduction
+
+1.1. Overview: This document outlines the requirements for the "Generative Medieval Empire Map" feature within the Empire Builder World application. This feature will provide users with a dynamic, visually engaging representation of the top 10 empires based on API data, rendered as an interactive SVG map with a distinct medieval aesthetic.
+1.2. Goals:
+Visualize the ranking and basic stats of the top 10 empires geographically (albeit on a fictional, generated map).
+Enhance user engagement by providing a thematic and interactive data visualization.
+Create a unique visual element consistent with the "Empire Builder" theme.
+1.3. Current Status: A work-in-progress (WIP) version may exist. This PRD guides the completion or modification of the feature to meet the specified requirements.
+2. Scope
+
+2.1. In Scope:
+Fetching and displaying data for the Top 10 empires from the specified API endpoint.
+Client-side generation of an SVG map featuring a single primary landmass.
+Algorithmic division of the landmass into 10 distinct regions representing the empires.
+Styling the map with a medieval aesthetic (colors, borders, potential textures).
+Displaying empire statistics (token_name, token_symbol, total_distributed, total_burned) in a tooltip on region hover.
+Basic responsiveness for the map container.
+Displaying loading and error states.
+Using the existing tech stack: Vite, Vue.js (specify Vue 2 or 3 if relevant, assume 3+), Zod, D3.js (v7+), DaisyUI (with Tailwind CSS).
+2.2. Out of Scope:
+Displaying more than 10 empires.
+Historical data visualization or time-based map changes.
+User customization of the map appearance or data displayed.
+Complex map interactions beyond hover (e.g., clicking, zooming, panning - unless specified later).
+Server-side rendering of the map.
+Advanced mobile-specific optimizations (focus on desktop/tablet first).
+3. Target Audience
+
+Users of the Empire Builder World platform interested in understanding the current hierarchy and status of the top-ranking empires/tokens.
+4. User Stories
+
+4.1. As a platform user, I want to view a visually thematic map displaying the top 10 empires so that I can quickly understand the current power landscape.
+4.2. As a platform user, I want the map to have a medieval style (parchment, old borders, thematic colors) so that it feels integrated with the Empire Builder theme.
+4.3. As a platform user, I want to hover my mouse over an empire's region on the map so that I can see its detailed stats (Name, Symbol, Distributed USD, Tokens Burned) in a tooltip.
+4.4. As a platform user, I want to see clear loading and error indicators so that I understand the map's status if data is delayed or fails to load.
+5. Functional Requirements
+
+FR01: Data Fetching: The application MUST fetch data for the top 10 empires by calling GET https://www.empirebuilder.world/api/top-empires?limit=10&page=1.
+FR02: Data Validation: Fetched data MUST be validated against a predefined Zod schema representing the expected structure of an empire object (base_token, token_name, token_symbol, total_distributed, total_burned, logo_uri). Invalid data should trigger an error state.
+FR03: Map Generation Trigger: The SVG map generation process MUST be triggered automatically when the component mounts and after the empire data has been successfully fetched and validated.
+FR04: Landmass Generation: A primary landmass shape MUST be algorithmically generated as an SVG path. The shape should feature an irregular "coastline" effect (e.g., using shape perturbation or SVG filters).
+FR05: Region Generation: The generated landmass MUST be algorithmically divided into 10 distinct, non-overlapping regions. The method used should ensure regions are contained within the landmass boundaries (e.g., Voronoi diagram clipped to the landmass polygon). Each region MUST be represented by an SVG path.
+FR06: Empire-Region Assignment: The fetched empires (ranked 1-10) MUST be assigned uniquely to the 10 generated regions based on their rank (e.g., Rank 1 assigned to Region 0, Rank 2 to Region 1, etc.).
+FR07: Region Rendering: Each generated empire region MUST be rendered as an SVG <path> element with visible borders.
+FR08: Hover Interaction:
+FR08.a: Hovering the mouse cursor over a region path MUST visually highlight that region (e.g., change fill opacity, stroke color/width). The highlight MUST be removed when the cursor leaves the region.
+FR08.b: Hovering over a region path MUST display a tooltip element.
+FR09: Tooltip Content: The tooltip MUST display the following information for the hovered empire:
+Empire Name (token_name)
+Empire Symbol (token_symbol)
+Total Distributed (total_distributed, formatted as USD currency, e.g., $1,234.56)
+Total Burned (total_burned, formatted as a number, e.g., 255,296,106)
+FR10: Loading State: A loading indicator (e.g., a DaisyUI spinner or custom message) MUST be displayed while the initial API data is being fetched.
+FR11: Error State: A user-friendly error message (e.g., using a DaisyUI alert component) MUST be displayed if the API fetch fails, data validation fails, or a critical error occurs during map generation.
+6. Design & UI/UX Requirements
+
+DR01: Medieval Aesthetic: The map MUST adhere to a medieval visual theme.
+Color Palette: Utilize muted greens, blues, browns, ochres. Define specific hex/rgba values.
+Textures (Optional): Attempt to simulate parchment or water texture using SVG filters or subtle CSS background effects, performance permitting.
+Borders: Region borders should be clearly visible, potentially styled with a dark, slightly irregular look.
+DR02: DaisyUI Integration: Utilize DaisyUI components for UI elements like tooltips, loading indicators, and error messages. These components MUST be styled or themed to align with the overall medieval aesthetic as much as possible.
+DR03: Tooltip Appearance: Tooltips MUST be clearly legible, positioned near the hovered region/cursor without obscuring essential map details. Consider using a thematic web font if available and performant.
+DR04: Layout: The map component should be well-integrated into the surrounding page layout, likely centered or occupying a defined content area.
+DR05: Visual States: Loading and Error states should be visually distinct and informative.
+7. Technical Requirements
+
+TR01: Framework: Implement the feature as a reusable Vue.js (specify version, e.g., v3) component, utilizing the Composition API.
+TR02: D3.js Usage: Use D3.js (v7+) for:
+SVG element creation and manipulation.
+Data binding (.data().join()).
+Geometric calculations (e.g., d3.Delaunay, d3.voronoi).
+Path generation (d3.line, path commands).
+Scales (e.g., d3.scaleOrdinal for color, d3.scaleLog for opacity based on data).
+Event handling for interactions.
+TR03: Polygon Clipping: Implement or utilize a library for robust polygon clipping (required for FR05, e.g., clipping Voronoi cells to the landmass shape). Evaluate options like polygon-clipping NPM package or a manual implementation if simpler cases suffice.
+TR04: Zod Schema: Define a Zod schema (src/schemas/empireSchema.js) for the empire object structure and use it to parse/validate the API response within the data fetching logic.
+TR05: SVG Generation: All SVG elements comprising the map (landmass, regions, borders) MUST be generated client-side via D3 within the Vue component.
+TR06: SVG Filters: If used for textures/effects, SVG filters (<defs>) should be defined and applied efficiently. Monitor their performance impact.
+TR07: State Management: Manage component state (loading, error, empire data, map data) effectively within the Vue component.
+8. Non-Functional Requirements
+
+NFR01: Performance:
+Initial map generation (post-data fetch) should be visually complete within 1.5 seconds on target devices.
+Hover interactions (highlight + tooltip display) should feel instantaneous (< 100ms latency).
+CPU usage during interaction should remain low. Monitor the performance cost of generative algorithms and SVG filters.
+NFR02: Responsiveness: The SVG map MUST scale proportionally to fit its container using viewBox and preserveAspectRatio. Tooltips MUST remain visible and correctly positioned during typical window resizing. Define behavior for very small screens if necessary (e.g., simplify map, show list view instead).
+NFR03: Error Handling: Implement try-catch blocks for data fetching, validation, and potentially complex D3 generation steps. Display informative error messages (FR11) without breaking the entire application. Log detailed errors to the console.
+NFR04: Code Quality: Code MUST be well-structured, modular (Vue components, separate utility functions), and commented, especially for complex algorithms (generation, clipping) and D3 logic. Adhere to project linting rules.
+NFR05: Accessibility: While complex SVG map accessibility is challenging, ensure:
+Tooltips are implemented accessibly (e.g., potentially using ARIA attributes if feasible with DaisyUI tooltip component).
+Loading/Error states use appropriate ARIA roles if possible.
+Sufficient color contrast for text and essential borders.
+9. Open Questions
+
+What is the required level of detail/realism for the "coastline" generation?
+What specific polygon clipping library/method should be used?
+How should the DaisyUI theme be customized to achieve the desired medieval look? (Requires investigation into DaisyUI theming capabilities).
+What is the fallback behavior on extremely small mobile screens?
+Are there specific performance budgets for CPU/memory?
+Specific browser support requirements beyond modern evergreen browsers?
+10. Release Criteria
+
+All Functional Requirements (FR) implemented and verified.
+All Non-Functional Requirements (NFR) met within acceptable tolerances.
+Design and UI/UX requirements (DR) implemented.
+Code reviewed and approved.
+No critical or major bugs outstanding.
+Feature tested on target browsers/devices.
